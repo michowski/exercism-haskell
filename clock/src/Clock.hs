@@ -1,33 +1,24 @@
 module Clock (clockHour, clockMin, fromHourMin, toString) where
 
-data Clock = Clock
-  { hour :: Integer
-  , mins :: Integer
-  } deriving (Eq, Show)
+data Clock = Clock { getMins :: Int } deriving (Eq, Show)
 
 instance Num Clock where
-  fromInteger = fromHourMin 0 . fromIntegral
-  x + y = fromInteger $ toMin x + toMin y
-  x - y = fromInteger $ toMin x - toMin y
-  negate = fromInteger . (1440 -) . toMin
-
-toMin :: Clock -> Integer
-toMin x = hour x * 60 + mins x
+  fromInteger = Clock . fromIntegral
+  x + y = Clock $ getMins x + getMins y
+  x - y = Clock $ getMins x - getMins y
+  negate = Clock . (1440 -) . getMins
 
 clockHour :: Clock -> Int
-clockHour = fromIntegral . hour
+clockHour = (`mod` 24) . (`div` 60) . getMins
 
 clockMin :: Clock -> Int
-clockMin = fromIntegral . mins
+clockMin = (`mod` 60) . getMins
 
 fromHourMin :: Int -> Int -> Clock
-fromHourMin hour min = Clock
-  { hour = fromIntegral $ mod (hour + div min 60) 24
-  , mins = fromIntegral $ mod min 60
-  }
+fromHourMin hour min = Clock $ mod ((60 * hour) + min) 1440
 
 toString :: Clock -> String
-toString clock = toStr (hour clock) ++ ":" ++ toStr (mins clock)
+toString clock = toStr (clockHour clock) ++ ":" ++ toStr (clockMin clock)
   where
     toStr x
       | x < 10 = '0' : show x
